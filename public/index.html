@@ -161,6 +161,90 @@
       cursor: pointer;
     }
     .install-banner.show { display: block; }
+    .feedback-btn {
+      position: fixed;
+      bottom: 80px;
+      right: 16px;
+      background: #1F4438;
+      color: #E8C547;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 10;
+    }
+    .feedback-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 20;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .feedback-overlay.show { display: flex; }
+    .feedback-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px 20px;
+      width: 100%;
+      max-width: 380px;
+    }
+    .feedback-modal h2 {
+      font-size: 17px;
+      color: #1F4438;
+      margin-bottom: 14px;
+    }
+    .stars {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+    .stars span {
+      font-size: 32px;
+      cursor: pointer;
+      color: #ddd;
+      transition: color 0.15s;
+    }
+    .stars span.active { color: #E8C547; }
+    .feedback-modal textarea {
+      width: 100%;
+      min-height: 80px;
+      margin-bottom: 14px;
+    }
+    .feedback-modal .actions {
+      display: flex;
+      gap: 10px;
+    }
+    .feedback-modal button.primary {
+      flex: 1;
+      background: #1F4438;
+      color: #FAF6EC;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .feedback-modal button.secondary {
+      background: none;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #1F4438;
+      font-size: 14px;
+    }
+    .feedback-thanks {
+      text-align: center;
+      color: #1F4438;
+      font-size: 15px;
+      padding: 20px 0;
+    }
   </style>
 </head>
 <body>
@@ -180,6 +264,26 @@
     <div class="input-area">
       <textarea id="input" rows="1" placeholder="Pose ta question, demande un exercice..."></textarea>
       <button class="send" id="sendBtn">→</button>
+    </div>
+  </div>
+
+  <button class="feedback-btn" id="feedbackBtn">⭐ Donner mon avis</button>
+
+  <div class="feedback-overlay" id="feedbackOverlay">
+    <div class="feedback-modal" id="feedbackModal">
+      <h2>Ton avis compte 🙏</h2>
+      <div class="stars" id="stars">
+        <span data-value="1">★</span>
+        <span data-value="2">★</span>
+        <span data-value="3">★</span>
+        <span data-value="4">★</span>
+        <span data-value="5">★</span>
+      </div>
+      <textarea id="feedbackText" placeholder="Qu'est-ce qu'on peut améliorer ? (optionnel)"></textarea>
+      <div class="actions">
+        <button class="secondary" id="feedbackCancel">Annuler</button>
+        <button class="primary" id="feedbackSend">Envoyer</button>
+      </div>
     </div>
   </div>
 
@@ -310,6 +414,57 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
+
+    // --- Gestion du formulaire d'avis ---
+    const feedbackBtn = document.getElementById("feedbackBtn");
+    const feedbackOverlay = document.getElementById("feedbackOverlay");
+    const feedbackModal = document.getElementById("feedbackModal");
+    const feedbackCancel = document.getElementById("feedbackCancel");
+    const feedbackSend = document.getElementById("feedbackSend");
+    const feedbackText = document.getElementById("feedbackText");
+    const starsEl = document.querySelectorAll("#stars span");
+    let selectedRating = 0;
+
+    feedbackBtn.onclick = () => {
+      feedbackOverlay.classList.add("show");
+    };
+
+    feedbackCancel.onclick = () => {
+      feedbackOverlay.classList.remove("show");
+    };
+
+    starsEl.forEach(star => {
+      star.addEventListener("click", () => {
+        selectedRating = parseInt(star.dataset.value);
+        starsEl.forEach(s => {
+          s.classList.toggle("active", parseInt(s.dataset.value) <= selectedRating);
+        });
+      });
+    });
+
+    feedbackSend.onclick = async () => {
+      if (selectedRating === 0) {
+        alert("Choisis au moins une étoile avant d'envoyer 🙂");
+        return;
+      }
+      const payload = {
+        rating: selectedRating,
+        comment: feedbackText.value.trim(),
+        date: new Date().toISOString()
+      };
+      try {
+        await fetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (e) {
+      }
+      feedbackModal.innerHTML = '<div class="feedback-thanks">Merci pour ton retour ! 🙌<br>Ça aide à améliorer Coach.</div>';
+      setTimeout(() => {
+        feedbackOverlay.classList.remove("show");
+      }, 1800);
+    };
   </script>
 </body>
 </html>
