@@ -1,7 +1,8 @@
-# Coach du candidat — BEPC & Bac Côte d'Ivoire
+# Coach du candidat — Du collège aux grandes écoles, Côte d'Ivoire
 
-Application de tutorat IA pour aider les élèves en classe d'examen (BEPC, Bac)
-à comprendre leurs cours, faire des exercices, et gagner en confiance.
+Application de tutorat IA pour aider les élèves et étudiants ivoiriens,
+de la 6ème jusqu'aux grandes écoles et à l'université, à comprendre
+leurs cours, faire des exercices, et gagner en confiance.
 
 ## Comment déployer ce projet (étapes)
 
