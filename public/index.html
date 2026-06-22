@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coach du candidat — BEPC & Bac Côte d'Ivoire</title>
+  <title>Coach du candidat — Du collège aux grandes écoles, Côte d'Ivoire</title>
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#1F4438" />
-  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Coach" />
@@ -169,7 +169,7 @@
       <div class="logo">C</div>
       <div>
         <h1>Coach du candidat</h1>
-        <p>BEPC · Bac — Côte d'Ivoire</p>
+        <p>Du collège aux grandes écoles · Côte d'Ivoire</p>
       </div>
     </header>
 
@@ -189,14 +189,14 @@
     const sendBtn = document.getElementById("sendBtn");
 
     let history = [
-      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider à préparer ton BEPC ou ton Bac. Pose-moi une question sur un cours, demande un exercice, ou dis-moi simplement ce qui te bloque. On avance ensemble." }
+      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire 🙂" }
     ];
 
     const suggestions = [
-      "Je ne comprends pas le théorème de Pythagore",
-      "Explique-moi la conjugaison du subjonctif",
-      "Donne-moi un exercice de maths niveau BEPC",
-      "Comment faire un bon résumé de texte ?"
+      "Je suis en 4ème, j'ai du mal en maths",
+      "Je suis en Terminale, explique-moi un cours",
+      "Je suis à l'université, j'ai besoin d'aide",
+      "Je suis en grande école, donne-moi un exercice"
     ];
 
     function render() {
