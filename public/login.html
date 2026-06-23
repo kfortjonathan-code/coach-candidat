@@ -41,12 +41,32 @@
       font-size: 18px;
       color: #1F4438;
     }
+    button.main {
+      width: 100%;
+      background: #1F4438;
+      color: #FAF6EC;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 600;
+      font-size: 15px;
+      margin-top: 16px;
+    }
   </style>
 </head>
 <body>
   <div class="card">
     <div class="logo">C</div>
-    <h1>Test étape 2 : si tu vois une carte blanche avec un rond jaune "C", le CSS fonctionne</h1>
+    <h1 id="formTitle">Connexion</h1>
+    <button class="main" id="testBtn">Clique-moi</button>
   </div>
+
+  <script>
+    const formTitle = document.getElementById("formTitle");
+    const testBtn = document.getElementById("testBtn");
+    testBtn.addEventListener("click", () => {
+      formTitle.textContent = "Le JavaScript fonctionne !";
+    });
+  </script>
 </body>
 </html>
