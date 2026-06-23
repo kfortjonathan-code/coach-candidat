@@ -8,6 +8,7 @@
   "routes": [
     { "src": "/api/chat", "dest": "/api/chat.js" },
     { "src": "/api/feedback", "dest": "/api/feedback.js" },
+    { "src": "/login.html", "dest": "/public/login.html" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
