@@ -2,22 +2,39 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Test Supabase 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test inscription</title>
 </head>
 <body>
-  <h1 id="result">Chargement...</h1>
+  <h1 id="result">Prêt</h1>
+  <input type="email" id="email" placeholder="email" value="test123@example.com" />
+  <input type="password" id="password" placeholder="mot de passe" value="motdepasse123" />
+  <button id="btn">Tester l'inscription</button>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
+    const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
     const resultEl = document.getElementById("result");
-    try {
-      const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
-      const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
-      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      resultEl.textContent = "Client Supabase créé avec succès !";
-    } catch (e) {
-      resultEl.textContent = "ERREUR : " + e.message;
-    }
+    const btn = document.getElementById("btn");
+
+    btn.addEventListener("click", async () => {
+      resultEl.textContent = "En cours...";
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      try {
+        const result = await supabase.auth.signUp({ email, password });
+        if (result.error) {
+          resultEl.textContent = "ERREUR : " + result.error.message;
+        } else {
+          resultEl.textContent = "INSCRIPTION RÉUSSIE !";
+        }
+      } catch (e) {
+        resultEl.textContent = "EXCEPTION : " + e.message;
+      }
+    });
   </script>
 </body>
 </html>
