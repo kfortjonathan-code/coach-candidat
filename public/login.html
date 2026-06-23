@@ -64,6 +64,20 @@
       margin-bottom: 16px;
     }
     input:focus { outline: 2px solid rgba(31,68,56,0.3); }
+    .password-wrap {
+      position: relative;
+    }
+    .password-wrap input {
+      padding-right: 44px;
+    }
+    .toggle-eye {
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      cursor: pointer;
+      font-size: 18px;
+      user-select: none;
+    }
     button.main {
       width: 100%;
       background: #1F4438;
@@ -109,7 +123,10 @@
     <input type="email" id="email" placeholder="ton@email.com" />
 
     <label for="password">Mot de passe</label>
-    <input type="password" id="password" placeholder="••••••••" />
+    <div class="password-wrap">
+      <input type="password" id="password" placeholder="••••••••" />
+      <span class="toggle-eye" id="toggleEye">👁</span>
+    </div>
 
     <button class="main" id="submitBtn">Se connecter</button>
 
@@ -133,6 +150,17 @@
     const messageEl = document.getElementById("message");
     const emailEl = document.getElementById("email");
     const passwordEl = document.getElementById("password");
+    const toggleEye = document.getElementById("toggleEye");
+
+    toggleEye.addEventListener("click", () => {
+      if (passwordEl.type === "password") {
+        passwordEl.type = "text";
+        toggleEye.textContent = "🙈";
+      } else {
+        passwordEl.type = "password";
+        toggleEye.textContent = "👁";
+      }
+    });
 
     function setMode(newMode) {
       mode = newMode;
