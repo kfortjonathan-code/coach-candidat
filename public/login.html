@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>Test Supabase</title>
+  <title>Test Supabase 2</title>
 </head>
 <body>
   <h1 id="result">Chargement...</h1>
@@ -10,10 +10,13 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const resultEl = document.getElementById("result");
-    if (window.supabase) {
-      resultEl.textContent = "Supabase est bien chargé !";
-    } else {
-      resultEl.textContent = "ERREUR : Supabase ne s'est pas chargé.";
+    try {
+      const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+      const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      resultEl.textContent = "Client Supabase créé avec succès !";
+    } catch (e) {
+      resultEl.textContent = "ERREUR : " + e.message;
     }
   </script>
 </body>
