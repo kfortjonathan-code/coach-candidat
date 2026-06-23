@@ -55,6 +55,16 @@
       color: #9FC4B3;
       font-size: 12px;
     }
+    .logout-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #FAF6EC;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
     .messages {
       flex: 1;
       overflow-y: auto;
@@ -255,6 +265,7 @@
         <h1>Coach du candidat</h1>
         <p>Du collège aux grandes écoles · Côte d'Ivoire</p>
       </div>
+      <button class="logout-btn" id="logoutBtn">Déconnexion</button>
     </header>
 
     <div class="install-banner" id="installBanner">📲 Installer Coach sur l'écran d'accueil</div>
@@ -287,7 +298,13 @@
     </div>
   </div>
 
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
+    const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let currentUser = null;
+
     const messagesEl = document.getElementById("messages");
     const inputEl = document.getElementById("input");
     const sendBtn = document.getElementById("sendBtn");
@@ -388,6 +405,21 @@
     });
 
     render();
+
+    // --- Vérification que l'élève est bien connecté ---
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) {
+        window.location.href = "/login.html";
+        return;
+      }
+      currentUser = data.session.user;
+    })();
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      window.location.href = "/login.html";
+    });
 
     // --- Gestion de l'installation PWA ---
     let deferredPrompt;
