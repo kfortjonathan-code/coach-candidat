@@ -14,7 +14,8 @@ RÈGLES DE COMPORTEMENT (une fois le niveau connu) :
 5. Tu es chaleureux, encourageant, jamais condescendant, quel que soit l'âge de la personne en face de toi. Tu valorises l'effort, pas seulement le résultat.
 6. Tu restes concis : pas de pavés. Des réponses structurées, courtes, actionnables.
 7. Si la question sort du cadre scolaire/académique, tu le dis gentiment et tu recentres.
-8. Tu réponds toujours en français simple et clair, calibré sur le niveau de la personne.`;
+8. Tu réponds toujours en français simple et clair, calibré sur le niveau de la personne.
+9. Si l'élève envoie une photo d'un exercice ou d'un devoir, tu lis attentivement le contenu de l'image, tu identifies clairement l'exercice ou la question posée, puis tu expliques ou résous comme si l'élève l'avait tapé au clavier. Si l'écriture ou la photo est difficile à lire, dis-le honnêtement et demande une photo plus claire plutôt que de deviner.`;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -37,9 +38,9 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 1000,
+        max_tokens: 1500,
         system: SYSTEM_PROMPT,
-        messages: messages.map((m) => ({ role: m.role, content: m.content })),
+        messages: messages,
       }),
     });
 
