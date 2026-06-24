@@ -124,8 +124,53 @@
       padding: 14px;
       border-top: 1px solid rgba(31,68,56,0.1);
       display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .input-row {
+      display: flex;
       gap: 10px;
       align-items: flex-end;
+    }
+    .photo-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: #F1ECDD;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .photo-preview {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: #F1ECDD;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+    .photo-preview.show { display: flex; }
+    .photo-preview img {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    .photo-preview .remove-photo {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #c0392b;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .msg-image {
+      max-width: 200px;
+      border-radius: 12px;
+      margin-top: 6px;
+      display: block;
     }
     textarea {
       flex: 1;
@@ -273,8 +318,17 @@
     <div class="messages" id="messages"></div>
 
     <div class="input-area">
-      <textarea id="input" rows="1" placeholder="Pose ta question, demande un exercice..."></textarea>
-      <button class="send" id="sendBtn">→</button>
+      <div class="photo-preview" id="photoPreview">
+        <img id="previewImg" src="" alt="aperçu" />
+        <span>Photo ajoutée</span>
+        <button class="remove-photo" id="removePhoto">Retirer</button>
+      </div>
+      <div class="input-row">
+        <button class="photo-btn" id="photoBtn">📷</button>
+        <textarea id="input" rows="1" placeholder="Pose ta question, demande un exercice..."></textarea>
+        <button class="send" id="sendBtn">→</button>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" />
     </div>
   </div>
 
@@ -297,7 +351,6 @@
       </div>
     </div>
   </div>
-
   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
@@ -308,9 +361,39 @@
     const messagesEl = document.getElementById("messages");
     const inputEl = document.getElementById("input");
     const sendBtn = document.getElementById("sendBtn");
+    const photoBtn = document.getElementById("photoBtn");
+    const fileInput = document.getElementById("fileInput");
+    const photoPreview = document.getElementById("photoPreview");
+    const previewImg = document.getElementById("previewImg");
+    const removePhoto = document.getElementById("removePhoto");
+    let selectedImageBase64 = null;
+    let selectedImageMediaType = null;
+
+    photoBtn.addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result;
+        selectedImageBase64 = result.split(",")[1];
+        selectedImageMediaType = file.type;
+        previewImg.src = result;
+        photoPreview.classList.add("show");
+      };
+      reader.readAsDataURL(file);
+    });
+
+    removePhoto.addEventListener("click", () => {
+      selectedImageBase64 = null;
+      selectedImageMediaType = null;
+      fileInput.value = "";
+      photoPreview.classList.remove("show");
+    });
 
     let history = [
-      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire 🙂" }
+      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire 🙂", displayText: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire 🙂" }
     ];
 
     const suggestions = [
@@ -329,7 +412,21 @@
           <div class="avatar">${m.role === "assistant" ? "C" : "Toi"}</div>
           <div class="bubble"></div>
         `;
-        div.querySelector(".bubble").textContent = m.content;
+        const bubble = div.querySelector(".bubble");
+        if (m.role === "user" && m.displayImage) {
+          const img = document.createElement("img");
+          img.src = m.displayImage;
+          img.className = "msg-image";
+          bubble.appendChild(img);
+          if (m.displayText) {
+            const p = document.createElement("div");
+            p.textContent = m.displayText;
+            p.style.marginTop = "6px";
+            bubble.appendChild(p);
+          }
+        } else {
+          bubble.textContent = m.role === "assistant" ? m.content : (m.displayText !== undefined ? m.displayText : m.content);
+        }
         messagesEl.appendChild(div);
       });
 
@@ -365,10 +462,27 @@
 
     async function sendMessage(text) {
       const content = text || inputEl.value.trim();
-      if (!content) return;
+      if (!content && !selectedImageBase64) return;
 
-      history.push({ role: "user", content });
+      let userMessageContent;
+      let displayImageSrc = null;
+
+      if (selectedImageBase64) {
+        displayImageSrc = `data:${selectedImageMediaType};base64,${selectedImageBase64}`;
+        userMessageContent = [
+          { type: "image", source: { type: "base64", media_type: selectedImageMediaType, data: selectedImageBase64 } },
+          { type: "text", text: content || "Voici une photo de mon exercice, aide-moi." }
+        ];
+      } else {
+        userMessageContent = content;
+      }
+
+      history.push({ role: "user", content: userMessageContent, displayText: content, displayImage: displayImageSrc });
       inputEl.value = "";
+      selectedImageBase64 = null;
+      selectedImageMediaType = null;
+      fileInput.value = "";
+      photoPreview.classList.remove("show");
       render();
       sendBtn.disabled = true;
       showTyping();
@@ -377,7 +491,7 @@
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history })
+          body: JSON.stringify({ messages: history.map(m => ({ role: m.role, content: m.content })) })
         });
         const data = await res.json();
         hideTyping();
@@ -406,7 +520,6 @@
 
     render();
 
-    // --- Vérification que l'élève est bien connecté ---
     (async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
@@ -421,7 +534,6 @@
       window.location.href = "/login.html";
     });
 
-    // --- Gestion de l'installation PWA ---
     let deferredPrompt;
     const installBanner = document.getElementById("installBanner");
 
@@ -447,7 +559,6 @@
       navigator.serviceWorker.register("/sw.js").catch(() => {});
     }
 
-    // --- Gestion du formulaire d'avis ---
     const feedbackBtn = document.getElementById("feedbackBtn");
     const feedbackOverlay = document.getElementById("feedbackOverlay");
     const feedbackModal = document.getElementById("feedbackModal");
