@@ -1,3 +1,5 @@
+import { checkCredits, decrementCredit } from './credits.js';
+
 const SYSTEM_PROMPT = `Tu es "Coach", un tuteur pédagogique ivoirien qui aide les élèves et étudiants de Côte d'Ivoire, de la classe de 6ème jusqu'aux grandes écoles et à l'université.
 
 RÈGLE PRIORITAIRE — DÉMARRAGE DE CONVERSATION :
@@ -23,10 +25,19 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages } = req.body;
+    const { messages, userId } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "Messages manquants ou invalides" });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: "Utilisateur non identifié" });
+    }
+
+    const check = await checkCredits(userId, "question");
+    if (!check.ok) {
+      return res.status(402).json({ error: "Crédits insuffisants", code: "NO_CREDITS" });
     }
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -56,9 +67,11 @@ export default async function handler(req, res) {
       .filter(Boolean)
       .join("\n");
 
+    await decrementCredit(userId, "question");
+
     return res.status(200).json({ text });
   } catch (error) {
     console.error("Erreur serveur:", error);
     return res.status(500).json({ error: "Erreur interne du serveur" });
   }
-}
+       }
