@@ -397,10 +397,15 @@
     ];
 
     const suggestions = [
-      "Je suis en 4ème, j'ai du mal en maths",
-      "Je suis en Terminale, explique-moi un cours",
-      "Je suis à l'université, j'ai besoin d'aide",
-      "Je suis en grande école, donne-moi un exercice"
+      "Je suis en classe de sixième",
+      "Je suis en classe de cinquième",
+      "Je suis en classe de quatrième",
+      "Je suis en classe de troisième",
+      "Je suis en classe de seconde",
+      "Je suis en classe de première",
+      "Je suis en classe de terminale",
+      "Je suis étudiant",
+      "Je suis étudiante"
     ];
 
     function render() {
@@ -487,17 +492,30 @@
       sendBtn.disabled = true;
       showTyping();
 
+      if (!currentUser) {
+        hideTyping();
+        history.push({ role: "assistant", content: "Ta session a expiré, reconnecte-toi pour continuer." });
+        render();
+        sendBtn.disabled = false;
+        return;
+      }
+
       try {
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history.map(m => ({ role: m.role, content: m.content })) })
+          body: JSON.stringify({
+            messages: history.map(m => ({ role: m.role, content: m.content })),
+            userId: currentUser.id
+          })
         });
         const data = await res.json();
         hideTyping();
 
         if (data.text) {
           history.push({ role: "assistant", content: data.text });
+        } else if (data.code === "NO_CREDITS") {
+          history.push({ role: "assistant", content: "Tu n'as plus de crédits questions pour le moment. Reviens bientôt pour en obtenir d'autres 🙂" });
         } else {
           history.push({ role: "assistant", content: "Désolé, une erreur s'est produite. Réessaie." });
         }
