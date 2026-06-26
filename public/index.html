@@ -121,6 +121,7 @@
     }
     .suggestion-btn:hover { background: #1F4438; color: #FAF6EC; }
     .input-area {
+      position: relative;
       padding: 14px;
       border-top: 1px solid rgba(31,68,56,0.1);
       display: flex;
@@ -129,19 +130,53 @@
     }
     .input-row {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: flex-end;
     }
-    .photo-btn {
+    .photo-btn, .mic-btn {
       width: 44px;
       height: 44px;
       border-radius: 12px;
       background: #F1ECDD;
       border: none;
-      font-size: 20px;
+      font-size: 19px;
       cursor: pointer;
       flex-shrink: 0;
     }
+    .mic-btn.recording {
+      background: #c0392b;
+      color: white;
+      animation: pulse-mic 1s infinite;
+    }
+    @keyframes pulse-mic {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .photo-menu {
+      display: none;
+      flex-direction: column;
+      position: absolute;
+      bottom: 100%;
+      left: 14px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+      overflow: hidden;
+      z-index: 15;
+    }
+    .photo-menu.show { display: flex; }
+    .photo-menu button {
+      background: none;
+      border: none;
+      padding: 13px 18px;
+      font-size: 14px;
+      color: #1F4438;
+      text-align: left;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .photo-menu button:not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
     .photo-preview {
       display: none;
       align-items: center;
@@ -318,6 +353,10 @@
     <div class="messages" id="messages"></div>
 
     <div class="input-area">
+      <div class="photo-menu" id="photoMenu">
+        <button id="takePhotoBtn">📷 Prendre une photo</button>
+        <button id="choosePhotoBtn">🖼️ Choisir dans la galerie</button>
+      </div>
       <div class="photo-preview" id="photoPreview">
         <img id="previewImg" src="" alt="aperçu" />
         <span>Photo ajoutée</span>
@@ -325,10 +364,12 @@
       </div>
       <div class="input-row">
         <button class="photo-btn" id="photoBtn">📷</button>
+        <button class="mic-btn" id="micBtn">🎤</button>
         <textarea id="input" rows="1" placeholder="Pose ta question, demande un exercice..."></textarea>
         <button class="send" id="sendBtn">→</button>
       </div>
-      <input type="file" id="fileInput" accept="image/*" style="display:none" />
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none" />
+      <input type="file" id="galleryInput" accept="image/*" style="display:none" />
     </div>
   </div>
 
@@ -362,17 +403,40 @@
     const inputEl = document.getElementById("input");
     const sendBtn = document.getElementById("sendBtn");
     const photoBtn = document.getElementById("photoBtn");
-    const fileInput = document.getElementById("fileInput");
+    const photoMenu = document.getElementById("photoMenu");
+    const takePhotoBtn = document.getElementById("takePhotoBtn");
+    const choosePhotoBtn = document.getElementById("choosePhotoBtn");
+    const cameraInput = document.getElementById("cameraInput");
+    const galleryInput = document.getElementById("galleryInput");
     const photoPreview = document.getElementById("photoPreview");
     const previewImg = document.getElementById("previewImg");
     const removePhoto = document.getElementById("removePhoto");
+    const micBtn = document.getElementById("micBtn");
     let selectedImageBase64 = null;
     let selectedImageMediaType = null;
 
-    photoBtn.addEventListener("click", () => fileInput.click());
+    photoBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      photoMenu.classList.toggle("show");
+    });
 
-    fileInput.addEventListener("change", () => {
-      const file = fileInput.files[0];
+    document.addEventListener("click", (e) => {
+      if (!photoMenu.contains(e.target) && e.target !== photoBtn) {
+        photoMenu.classList.remove("show");
+      }
+    });
+
+    takePhotoBtn.addEventListener("click", () => {
+      photoMenu.classList.remove("show");
+      cameraInput.click();
+    });
+
+    choosePhotoBtn.addEventListener("click", () => {
+      photoMenu.classList.remove("show");
+      galleryInput.click();
+    });
+
+    function handleFileSelect(file) {
       if (!file) return;
       const reader = new FileReader();
       reader.onload = () => {
@@ -383,13 +447,66 @@
         photoPreview.classList.add("show");
       };
       reader.readAsDataURL(file);
+    }
+
+    cameraInput.addEventListener("change", () => {
+      handleFileSelect(cameraInput.files[0]);
+    });
+
+    galleryInput.addEventListener("change", () => {
+      handleFileSelect(galleryInput.files[0]);
     });
 
     removePhoto.addEventListener("click", () => {
       selectedImageBase64 = null;
       selectedImageMediaType = null;
-      fileInput.value = "";
+      cameraInput.value = "";
+      galleryInput.value = "";
       photoPreview.classList.remove("show");
+    });
+
+    let recognition = null;
+    let isRecording = false;
+
+    micBtn.addEventListener("click", () => {
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognitionAPI) {
+        alert("La saisie vocale n'est pas disponible sur ce navigateur. Essaie avec Chrome sur Android.");
+        return;
+      }
+
+      if (isRecording && recognition) {
+        recognition.stop();
+        return;
+      }
+
+      recognition = new SpeechRecognitionAPI();
+      recognition.lang = "fr-FR";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        micBtn.classList.add("recording");
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        inputEl.value = inputEl.value.trim() ? inputEl.value.trim() + " " + transcript : transcript;
+      };
+
+      recognition.onerror = (event) => {
+        if (event.error === "not-allowed" || event.error === "permission-denied") {
+          alert("Autorise l'accès au microphone pour utiliser la saisie vocale.");
+        }
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        micBtn.classList.remove("recording");
+      };
+
+      recognition.start();
     });
 
     let history = [
@@ -407,6 +524,7 @@
       "Je suis étudiant",
       "Je suis étudiante"
     ];
+
     function render() {
       messagesEl.innerHTML = "";
       history.forEach(m => {
@@ -485,7 +603,8 @@
       inputEl.value = "";
       selectedImageBase64 = null;
       selectedImageMediaType = null;
-      fileInput.value = "";
+      cameraInput.value = "";
+      galleryInput.value = "";
       photoPreview.classList.remove("show");
       render();
       sendBtn.disabled = true;
