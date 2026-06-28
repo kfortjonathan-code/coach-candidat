@@ -266,11 +266,26 @@
       cursor: pointer;
       z-index: 10;
     }
-    .level-menu {
+    .exam-btn {
+      position: fixed;
+      bottom: 132px;
+      left: 16px;
+      background: #1F4438;
+      color: #E8C547;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 10;
+    }
+    .level-menu, .exam-menu {
       display: none;
       flex-direction: column;
       position: fixed;
-      bottom: 130px;
+      bottom: 184px;
       left: 16px;
       width: min(300px, calc(100vw - 32px));
       max-height: 55vh;
@@ -280,7 +295,7 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       z-index: 25;
     }
-    .level-menu.show { display: flex; }
+    .level-menu.show, .exam-menu.show { display: flex; }
     .level-menu button {
       background: none;
       border: none;
@@ -293,6 +308,39 @@
       line-height: 1.4;
     }
     .level-menu button:not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
+    .exam-menu-inner {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .exam-menu-inner label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #1F4438;
+    }
+    .exam-menu-inner input {
+      padding: 10px 12px;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .exam-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .exam-actions button {
+      padding: 10px;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 8px;
+      background: #F1ECDD;
+      color: #1F4438;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
     .feedback-overlay {
       display: none;
       position: fixed;
@@ -403,6 +451,19 @@
   <button class="level-btn" id="levelBtn">🎓 Mon niveau</button>
   <div class="level-menu" id="levelMenu"></div>
 
+  <button class="exam-btn" id="examBtn">📝 Composition</button>
+  <div class="exam-menu" id="examMenu">
+    <div class="exam-menu-inner">
+      <label for="examSubject">Matière</label>
+      <input type="text" id="examSubject" placeholder="ex : Mathématiques" />
+      <div class="exam-actions">
+        <button id="examSujetBtn">📄 Sujet type</button>
+        <button id="examCorrigeBtn">✅ Corrigé</button>
+        <button id="examConseilsBtn">💡 Conseils</button>
+      </div>
+    </div>
+  </div>
+
   <button class="feedback-btn" id="feedbackBtn">⭐ Donner mon avis</button>
 
   <div class="feedback-overlay" id="feedbackOverlay">
@@ -421,7 +482,7 @@
         <button class="primary" id="feedbackSend">Envoyer</button>
       </div>
     </div>
-        </div>
+          </div>
   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
@@ -444,6 +505,12 @@
     const micBtn = document.getElementById("micBtn");
     const levelBtn = document.getElementById("levelBtn");
     const levelMenu = document.getElementById("levelMenu");
+    const examBtn = document.getElementById("examBtn");
+    const examMenu = document.getElementById("examMenu");
+    const examSubject = document.getElementById("examSubject");
+    const examSujetBtn = document.getElementById("examSujetBtn");
+    const examCorrigeBtn = document.getElementById("examCorrigeBtn");
+    const examConseilsBtn = document.getElementById("examConseilsBtn");
     let selectedImageBase64 = null;
     let selectedImageMediaType = null;
 
@@ -563,8 +630,38 @@
 
     levelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
+      examMenu.classList.remove("show");
       levelMenu.classList.toggle("show");
     });
+
+    examBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      levelMenu.classList.remove("show");
+      examMenu.classList.toggle("show");
+    });
+
+    function sendExamRequest(kind) {
+      const subject = examSubject.value.trim();
+      if (!subject) {
+        examSubject.focus();
+        return;
+      }
+      let message;
+      if (kind === "sujet") {
+        message = `Donne-moi un sujet type de composition/examen en ${subject}, adapté à mon niveau.`;
+      } else if (kind === "corrige") {
+        message = `Donne-moi le corrigé détaillé du dernier sujet type en ${subject} que tu m'as proposé.`;
+      } else {
+        message = `Donne-moi des conseils concrets pour réussir une composition/examen en ${subject}, adaptés à mon niveau.`;
+      }
+      examMenu.classList.remove("show");
+      examSubject.value = "";
+      sendMessage(message);
+    }
+
+    examSujetBtn.addEventListener("click", () => sendExamRequest("sujet"));
+    examCorrigeBtn.addEventListener("click", () => sendExamRequest("corrige"));
+    examConseilsBtn.addEventListener("click", () => sendExamRequest("conseils"));
 
     document.addEventListener("click", (e) => {
       if (!photoMenu.contains(e.target) && e.target !== photoBtn) {
@@ -572,6 +669,9 @@
       }
       if (!levelMenu.contains(e.target) && e.target !== levelBtn) {
         levelMenu.classList.remove("show");
+      }
+      if (!examMenu.contains(e.target) && e.target !== examBtn) {
+        examMenu.classList.remove("show");
       }
     });
 
@@ -783,4 +883,4 @@
     };
   </script>
 </body>
-</html>
+</html>        
