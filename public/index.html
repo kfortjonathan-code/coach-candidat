@@ -281,11 +281,26 @@
       cursor: pointer;
       z-index: 10;
     }
-    .level-menu, .exam-menu {
+    .translate-btn {
+      position: fixed;
+      bottom: 184px;
+      left: 16px;
+      background: #E8C547;
+      color: #1F4438;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 10;
+    }
+    .level-menu, .exam-menu, .translate-menu {
       display: none;
       flex-direction: column;
       position: fixed;
-      bottom: 184px;
+      bottom: 236px;
       left: 16px;
       width: min(300px, calc(100vw - 32px));
       max-height: 55vh;
@@ -295,7 +310,7 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       z-index: 25;
     }
-    .level-menu.show, .exam-menu.show { display: flex; }
+    .level-menu.show, .exam-menu.show, .translate-menu.show { display: flex; }
     .level-menu button {
       background: none;
       border: none;
@@ -308,13 +323,13 @@
       line-height: 1.4;
     }
     .level-menu button:not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
-    .exam-menu-inner {
+    .exam-menu-inner, .translate-menu-inner {
       padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
-    .exam-menu-inner label {
+    .exam-menu-inner label, .translate-menu-inner label {
       font-size: 12px;
       font-weight: 600;
       color: #1F4438;
@@ -337,6 +352,44 @@
       border-radius: 8px;
       background: #F1ECDD;
       color: #1F4438;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .lang-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-row select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1F4438;
+      background: white;
+    }
+    .lang-row span {
+      color: #1F4438;
+      font-weight: 700;
+    }
+    .translate-menu-inner textarea {
+      width: 100%;
+      min-height: 70px;
+      padding: 10px 12px;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+    }
+    .translate-menu-inner > button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #1F4438;
+      color: #FAF6EC;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
@@ -464,6 +517,31 @@
     </div>
   </div>
 
+  <button class="translate-btn" id="translateBtn">🌐 Traduire</button>
+  <div class="translate-menu" id="translateMenu">
+    <div class="translate-menu-inner">
+      <label>Langues</label>
+      <div class="lang-row">
+        <select id="langFrom">
+          <option value="français" selected>Français</option>
+          <option value="anglais">Anglais</option>
+          <option value="espagnol">Espagnol</option>
+          <option value="allemand">Allemand</option>
+        </select>
+        <span>→</span>
+        <select id="langTo">
+          <option value="anglais" selected>Anglais</option>
+          <option value="français">Français</option>
+          <option value="espagnol">Espagnol</option>
+          <option value="allemand">Allemand</option>
+        </select>
+      </div>
+      <label for="translateText">Texte à traduire</label>
+      <textarea id="translateText" placeholder="Tape ou colle ton texte..."></textarea>
+      <button id="translateSendBtn">Traduire</button>
+    </div>
+  </div>
+
   <button class="feedback-btn" id="feedbackBtn">⭐ Donner mon avis</button>
 
   <div class="feedback-overlay" id="feedbackOverlay">
@@ -483,7 +561,7 @@
       </div>
     </div>
           </div>
-  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
@@ -511,6 +589,12 @@
     const examSujetBtn = document.getElementById("examSujetBtn");
     const examCorrigeBtn = document.getElementById("examCorrigeBtn");
     const examConseilsBtn = document.getElementById("examConseilsBtn");
+    const translateBtn = document.getElementById("translateBtn");
+    const translateMenu = document.getElementById("translateMenu");
+    const langFrom = document.getElementById("langFrom");
+    const langTo = document.getElementById("langTo");
+    const translateText = document.getElementById("translateText");
+    const translateSendBtn = document.getElementById("translateSendBtn");
     let selectedImageBase64 = null;
     let selectedImageMediaType = null;
 
@@ -631,13 +715,36 @@
     levelBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       examMenu.classList.remove("show");
+      translateMenu.classList.remove("show");
       levelMenu.classList.toggle("show");
     });
 
     examBtn.addEventListener("click", (e) => {
       e.stopPropagation();
       levelMenu.classList.remove("show");
+      translateMenu.classList.remove("show");
       examMenu.classList.toggle("show");
+    });
+
+    translateBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      levelMenu.classList.remove("show");
+      examMenu.classList.remove("show");
+      translateMenu.classList.toggle("show");
+    });
+
+    translateSendBtn.addEventListener("click", () => {
+      const text = translateText.value.trim();
+      if (!text) {
+        translateText.focus();
+        return;
+      }
+      const from = langFrom.value;
+      const to = langTo.value;
+      const message = `Traduis ce texte de ${from} vers ${to} : "${text}"`;
+      translateMenu.classList.remove("show");
+      translateText.value = "";
+      sendMessage(message);
     });
 
     function sendExamRequest(kind) {
@@ -672,6 +779,9 @@
       }
       if (!examMenu.contains(e.target) && e.target !== examBtn) {
         examMenu.classList.remove("show");
+      }
+      if (!translateMenu.contains(e.target) && e.target !== translateBtn) {
+        translateMenu.classList.remove("show");
       }
     });
 
@@ -883,4 +993,4 @@
     };
   </script>
 </body>
-</html>        
+</html>       
