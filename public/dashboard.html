@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mon tableau de bord — Coach du candidat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #FAF6EC;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    header {
+      background: #1F4438;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #FAF6EC;
+      font-size: 20px;
+      cursor: pointer;
+      padding: 0 8px 0 0;
+    }
+    header h1 { color: #FAF6EC; font-size: 17px; font-weight: 600; }
+    .page { max-width: 640px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    }
+    .card h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(31,68,56,0.6);
+      margin-bottom: 14px;
+      font-family: monospace;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .stat {
+      background: #F3F1EA;
+      border-radius: 10px;
+      padding: 14px 12px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #1F4438;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: rgba(31,68,56,0.7);
+      margin-top: 4px;
+    }
+    .stat-warn .stat-value { color: #c0392b; }
+    .credits-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(31,68,56,0.08);
+    }
+    .credits-row:last-child { border-bottom: none; }
+    .credits-label { font-size: 14px; color: #1F4438; }
+    .credits-val {
+      font-size: 16px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #1F4438;
+    }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .bar-row:last-child { margin-bottom: 0; }
+    .bar-label { font-size: 13px; color: #1F4438; width: 110px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bar-track { flex: 1; height: 10px; background: #F3F1EA; border-radius: 6px; overflow: hidden; }
+    .bar-fill { height: 100%; background: #1F4438; border-radius: 6px; transition: width 0.5s; }
+    .bar-count { font-size: 12px; font-family: monospace; color: rgba(31,68,56,0.6); width: 24px; text-align: right; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(31,68,56,0.08);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-icon { font-size: 18px; }
+    .history-text { flex: 1; }
+    .history-main { font-size: 14px; color: #1F4438; }
+    .history-date { font-size: 11px; color: rgba(31,68,56,0.5); margin-top: 2px; }
+    .empty { text-align: center; color: rgba(31,68,56,0.5); font-size: 14px; padding: 20px 0; }
+    .loading { text-align: center; color: rgba(31,68,56,0.4); font-size: 13px; padding: 30px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="window.location.href='/index.html'">←</button>
+    <h1>Mon tableau de bord</h1>
+  </header>
+
+  <div class="page">
+    <div class="card" id="statsCard">
+      <h2>Activité globale</h2>
+      <div class="stats-grid" id="statsGrid">
+        <div class="loading">Chargement...</div>
+      </div>
+    </div>
+
+    <div class="card" id="creditsCard">
+      <h2>Crédits restants</h2>
+      <div id="creditsList"><div class="loading">Chargement...</div></div>
+    </div>
+
+    <div class="card" id="subjectsCard">
+      <h2>Matières travaillées</h2>
+      <div id="subjectsList"><div class="loading">Chargement...</div></div>
+    </div>
+
+    <div class="card" id="historyCard">
+      <h2>Dernières activités</h2>
+      <div id="historyList"><div class="loading">Chargement...</div></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function formatDate(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+    }
+
+    async function loadDashboard() {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) { window.location.href = "/login.html"; return; }
+      const userId = session.session.user.id;
+
+      const [creditsRes, historyRes] = await Promise.all([
+        supabase.from("credits").select("credits_simple, credits_photo, subscription_active").eq("user_id", userId).single(),
+        supabase.from("credits_history").select("type, delta, subject, created_at").eq("user_id", userId).order("created_at", { ascending: false }).limit(50)
+      ]);
+
+      const credits = creditsRes.data;
+      const history = historyRes.data || [];
+
+      const totalInteractions = history.length;
+      const thisMonth = history.filter(h => new Date(h.created_at) > new Date(Date.now() - 30 * 24 * 3600 * 1000)).length;
+
+      document.getElementById("statsGrid").innerHTML = `
+        <div class="stat">
+          <div class="stat-value">${totalInteractions}</div>
+          <div class="stat-label">Questions posées</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">${thisMonth}</div>
+          <div class="stat-label">Ce mois-ci</div>
+        </div>
+      `;
+
+      if (credits) {
+        document.getElementById("creditsList").innerHTML = `
+          <div class="credits-row">
+            <span class="credits-label">💬 Questions</span>
+            <span class="credits-val ${credits.credits_simple <= 2 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_simple}</span>
+          </div>
+          <div class="credits-row">
+            <span class="credits-label">📷 Photos</span>
+            <span class="credits-val ${credits.credits_photo <= 1 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_photo}</span>
+          </div>
+        `;
+      } else {
+        document.getElementById("creditsList").innerHTML = '<div class="empty">Données non disponibles</div>';
+      }
+
+      const subjectCounts = {};
+      history.forEach(h => {
+        if (h.subject && h.subject !== "Traduction" && h.subject !== "Orientation") {
+          subjectCounts[h.subject] = (subjectCounts[h.subject] || 0) + 1;
+        }
+      });
+      const subjects = Object.entries(subjectCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+      const maxCount = subjects[0]?.[1] || 1;
+
+      if (subjects.length === 0) {
+        document.getElementById("subjectsList").innerHTML = '<div class="empty">Pas encore de données — utilise le bouton 📝 Composition pour que les matières apparaissent ici</div>';
+      } else {
+        document.getElementById("subjectsList").innerHTML = subjects.map(([name, count]) => `
+          <div class="bar-row">
+            <span class="bar-label">${name}</span>
+            <div class="bar-track"><div class="bar-fill" style="width:${Math.round(count / maxCount * 100)}%"></div></div>
+            <span class="bar-count">${count}</span>
+          </div>
+        `).join("");
+      }
+
+      const recent = history.slice(0, 8);
+      if (recent.length === 0) {
+        document.getElementById("historyList").innerHTML = '<div class="empty">Aucune activité pour l\'instant</div>';
+      } else {
+        document.getElementById("historyList").innerHTML = recent.map(h => `
+          <div class="history-item">
+            <span class="history-icon">${h.subject === "Traduction" ? "🌐" : h.subject === "Orientation" ? "🎯" : h.type === "photo" ? "📷" : "💬"}</span>
+            <div class="history-text">
+              <div class="history-main">${h.subject || "Question générale"}</div>
+              <div class="history-date">${formatDate(h.created_at)}</div>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    loadDashboard();
+  </script>
+</body>
+  </html>
