@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages, userId } = req.body;
+    const { messages, userId, subject } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({ error: "Messages manquants ou invalides" });
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
       .filter(Boolean)
       .join("\n");
 
-    await decrementCredit(userId, "question");
+    await decrementCredit(userId, "question", subject || null);
 
     return res.status(200).json({ text });
   } catch (error) {
