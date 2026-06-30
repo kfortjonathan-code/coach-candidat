@@ -25,7 +25,7 @@ export async function checkCredits(userId, type) {
   return { ok: balance > 0, balance };
 }
 
-export async function decrementCredit(userId, type) {
+export async function decrementCredit(userId, type, subject = null) {
   const column = type === "photo" ? "credits_photo" : "credits_simple";
 
   const res = await fetch(
@@ -46,6 +46,6 @@ export async function decrementCredit(userId, type) {
   await fetch(`${SUPABASE_URL}/rest/v1/credits_history`, {
     method: "POST",
     headers,
-    body: JSON.stringify({ user_id: userId, type, delta: -1 }),
+    body: JSON.stringify({ user_id: userId, type, delta: -1, subject }),
   });
 }
