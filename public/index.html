@@ -56,8 +56,23 @@
       color: #9FC4B3;
       font-size: 12px;
     }
-    .logout-btn {
+    .header-actions {
       margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dashboard-link {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #FAF6EC;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .logout-btn {
       background: none;
       border: 1px solid rgba(255,255,255,0.3);
       color: #FAF6EC;
@@ -487,7 +502,10 @@
         <h1>Coach du candidat</h1>
         <p>Du collège aux grandes écoles · Côte d'Ivoire</p>
       </div>
-      <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+      <div class="header-actions">
+        <a class="dashboard-link" href="/dashboard.html">📊</a>
+        <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+      </div>
     </header>
 
     <div class="install-banner" id="installBanner">📲 Installer Coach sur l'écran d'accueil</div>
@@ -601,13 +619,14 @@
         <button class="primary" id="feedbackSend">Envoyer</button>
       </div>
     </div>
-    </div>
- <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  </div>
+<script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     let currentUser = null;
+    let currentSubject = null;
 
     const messagesEl = document.getElementById("messages");
     const inputEl = document.getElementById("input");
@@ -684,13 +703,8 @@
       reader.readAsDataURL(file);
     }
 
-    cameraInput.addEventListener("change", () => {
-      handleFileSelect(cameraInput.files[0]);
-    });
-
-    galleryInput.addEventListener("change", () => {
-      handleFileSelect(galleryInput.files[0]);
-    });
+    cameraInput.addEventListener("change", () => handleFileSelect(cameraInput.files[0]));
+    galleryInput.addEventListener("change", () => handleFileSelect(galleryInput.files[0]));
 
     removePhoto.addEventListener("click", () => {
       selectedImageBase64 = null;
@@ -707,41 +721,23 @@
     micBtn.addEventListener("click", () => {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognitionAPI) {
-        alert("La saisie vocale n'est pas disponible sur ce navigateur. Essaie avec Chrome sur Android.");
+        alert("La saisie vocale n'est pas disponible sur ce navigateur.");
         return;
       }
-
-      if (isRecording && recognition) {
-        recognition.stop();
-        return;
-      }
-
+      if (isRecording && recognition) { recognition.stop(); return; }
       recognition = new SpeechRecognitionAPI();
       recognition.lang = "fr-FR";
       recognition.continuous = false;
       recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        isRecording = true;
-        micBtn.classList.add("recording");
-      };
-
+      recognition.onstart = () => { isRecording = true; micBtn.classList.add("recording"); };
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         inputEl.value = inputEl.value.trim() ? inputEl.value.trim() + " " + transcript : transcript;
       };
-
       recognition.onerror = (event) => {
-        if (event.error === "not-allowed" || event.error === "permission-denied") {
-          alert("Autorise l'accès au microphone pour utiliser la saisie vocale.");
-        }
+        if (event.error === "not-allowed") alert("Autorise l'accès au microphone.");
       };
-
-      recognition.onend = () => {
-        isRecording = false;
-        micBtn.classList.remove("recording");
-      };
-
+      recognition.onend = () => { isRecording = false; micBtn.classList.remove("recording"); };
       recognition.start();
     });
 
@@ -764,10 +760,7 @@
     suggestions.forEach(s => {
       const btn = document.createElement("button");
       btn.textContent = s;
-      btn.addEventListener("click", () => {
-        closeAllPanels();
-        sendMessage(s);
-      });
+      btn.addEventListener("click", () => { closeAllPanels(); sendMessage(s); });
       levelMenu.appendChild(btn);
     });
 
@@ -792,10 +785,7 @@
     });
 
     [levelBack, examBack, translateBack, orientationBack].forEach(btn => {
-      btn.addEventListener("click", () => {
-        closeAllPanels();
-        toolsMenu.classList.add("show");
-      });
+      btn.addEventListener("click", () => { closeAllPanels(); toolsMenu.classList.add("show"); });
     });
 
     translateCameraBtn.addEventListener("click", () => cameraInput.click());
@@ -805,18 +795,11 @@
       const text = translateText.value.trim();
       const from = langFrom.value;
       const to = langTo.value;
-      if (!text && !selectedImageBase64) {
-        translateText.focus();
-        return;
-      }
-      let message;
-      if (selectedImageBase64) {
-        message = text
-          ? `Voici une photo d'un exercice. Traduis le texte qu'elle contient, ainsi que ce complément : "${text}", de ${from} vers ${to}.`
-          : `Voici une photo d'un exercice. Traduis tout le texte qu'elle contient de ${from} vers ${to}, puis propose-moi ton aide pour l'exercice une fois traduit.`;
-      } else {
-        message = `Traduis ce texte de ${from} vers ${to} : "${text}"`;
-      }
+      if (!text && !selectedImageBase64) { translateText.focus(); return; }
+      currentSubject = "Traduction";
+      const message = selectedImageBase64
+        ? (text ? `Voici une photo d'un exercice. Traduis le texte qu'elle contient, ainsi que ce complément : "${text}", de ${from} vers ${to}.` : `Voici une photo d'un exercice. Traduis tout le texte qu'elle contient de ${from} vers ${to}, puis propose-moi ton aide pour l'exercice une fois traduit.`)
+        : `Traduis ce texte de ${from} vers ${to} : "${text}"`;
       closeAllPanels();
       translateText.value = "";
       sendMessage(message);
@@ -824,6 +807,7 @@
 
     orientationSendBtn.addEventListener("click", () => {
       const interests = interestsInput.value.trim();
+      currentSubject = "Orientation";
       const message = interests
         ? `Donne-moi des conseils d'orientation scolaire et professionnelle adaptés à mon niveau, en tenant compte de mes centres d'intérêt : ${interests}.`
         : `Donne-moi des conseils d'orientation scolaire et professionnelle adaptés à mon niveau.`;
@@ -834,18 +818,12 @@
 
     function sendExamRequest(kind) {
       const subject = examSubject.value.trim();
-      if (!subject) {
-        examSubject.focus();
-        return;
-      }
+      if (!subject) { examSubject.focus(); return; }
+      currentSubject = subject;
       let message;
-      if (kind === "sujet") {
-        message = `Donne-moi un sujet type de composition/examen en ${subject}, adapté à mon niveau.`;
-      } else if (kind === "corrige") {
-        message = `Donne-moi le corrigé détaillé du dernier sujet type en ${subject} que tu m'as proposé.`;
-      } else {
-        message = `Donne-moi des conseils concrets pour réussir une composition/examen en ${subject}, adaptés à mon niveau.`;
-      }
+      if (kind === "sujet") message = `Donne-moi un sujet type de composition/examen en ${subject}, adapté à mon niveau.`;
+      else if (kind === "corrige") message = `Donne-moi le corrigé détaillé du dernier sujet type en ${subject} que tu m'as proposé.`;
+      else message = `Donne-moi des conseils concrets pour réussir une composition/examen en ${subject}, adaptés à mon niveau.`;
       closeAllPanels();
       examSubject.value = "";
       sendMessage(message);
@@ -856,13 +834,9 @@
     examConseilsBtn.addEventListener("click", () => sendExamRequest("conseils"));
 
     document.addEventListener("click", (e) => {
-      if (!photoMenu.contains(e.target) && e.target !== photoBtn) {
-        photoMenu.classList.remove("show");
-      }
+      if (!photoMenu.contains(e.target) && e.target !== photoBtn) photoMenu.classList.remove("show");
       const insideTools = toolsMenu.contains(e.target) || panels.some(p => p.contains(e.target));
-      if (!insideTools && e.target !== outilsBtn) {
-        closeAllPanels();
-      }
+      if (!insideTools && e.target !== outilsBtn) closeAllPanels();
     });
 
     function render() {
@@ -870,10 +844,7 @@
       history.forEach(m => {
         const div = document.createElement("div");
         div.className = "msg " + m.role;
-        div.innerHTML = `
-          <div class="avatar">${m.role === "assistant" ? "C" : "Toi"}</div>
-          <div class="bubble"></div>
-        `;
+        div.innerHTML = `<div class="avatar">${m.role === "assistant" ? "C" : "Toi"}</div><div class="bubble"></div>`;
         const bubble = div.querySelector(".bubble");
         if (m.role === "user" && m.displayImage) {
           const img = document.createElement("img");
@@ -891,7 +862,6 @@
         }
         messagesEl.appendChild(div);
       });
-
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
@@ -952,11 +922,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: history.map(m => ({ role: m.role, content: m.content })),
-            userId: currentUser.id
+            userId: currentUser.id,
+            subject: currentSubject
           })
         });
         const data = await res.json();
         hideTyping();
+        currentSubject = null;
 
         if (data.text) {
           history.push({ role: "assistant", content: data.text });
@@ -976,20 +948,14 @@
 
     sendBtn.onclick = () => sendMessage();
     inputEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
     render();
 
     (async () => {
       const { data } = await supabase.auth.getSession();
-      if (!data.session) {
-        window.location.href = "/login.html";
-        return;
-      }
+      if (!data.session) { window.location.href = "/login.html"; return; }
       currentUser = data.session.user;
     })();
 
@@ -1000,13 +966,9 @@
 
     let deferredPrompt;
     const installBanner = document.getElementById("installBanner");
-
     window.addEventListener("beforeinstallprompt", (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBanner.classList.add("show");
+      e.preventDefault(); deferredPrompt = e; installBanner.classList.add("show");
     });
-
     installBanner.addEventListener("click", async () => {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
@@ -1014,14 +976,9 @@
       deferredPrompt = null;
       installBanner.classList.remove("show");
     });
+    window.addEventListener("appinstalled", () => installBanner.classList.remove("show"));
 
-    window.addEventListener("appinstalled", () => {
-      installBanner.classList.remove("show");
-    });
-
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch(() => {});
-    }
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
 
     const feedbackBtn = document.getElementById("feedbackBtn");
     const feedbackOverlay = document.getElementById("feedbackOverlay");
@@ -1032,46 +989,28 @@
     const starsEl = document.querySelectorAll("#stars span");
     let selectedRating = 0;
 
-    feedbackBtn.onclick = () => {
-      feedbackOverlay.classList.add("show");
-    };
-
-    feedbackCancel.onclick = () => {
-      feedbackOverlay.classList.remove("show");
-    };
+    feedbackBtn.onclick = () => feedbackOverlay.classList.add("show");
+    feedbackCancel.onclick = () => feedbackOverlay.classList.remove("show");
 
     starsEl.forEach(star => {
       star.addEventListener("click", () => {
         selectedRating = parseInt(star.dataset.value);
-        starsEl.forEach(s => {
-          s.classList.toggle("active", parseInt(s.dataset.value) <= selectedRating);
-        });
+        starsEl.forEach(s => s.classList.toggle("active", parseInt(s.dataset.value) <= selectedRating));
       });
     });
 
     feedbackSend.onclick = async () => {
-      if (selectedRating === 0) {
-        alert("Choisis au moins une étoile avant d'envoyer 🙂");
-        return;
-      }
-      const payload = {
-        rating: selectedRating,
-        comment: feedbackText.value.trim(),
-        date: new Date().toISOString()
-      };
+      if (selectedRating === 0) { alert("Choisis au moins une étoile avant d'envoyer 🙂"); return; }
       try {
         await fetch("/api/feedback", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify({ rating: selectedRating, comment: feedbackText.value.trim(), date: new Date().toISOString() })
         });
-      } catch (e) {
-      }
+      } catch (e) {}
       feedbackModal.innerHTML = '<div class="feedback-thanks">Merci pour ton retour ! 🙌<br>Ça aide à améliorer Coach.</div>';
-      setTimeout(() => {
-        feedbackOverlay.classList.remove("show");
-      }, 1800);
+      setTimeout(() => feedbackOverlay.classList.remove("show"), 1800);
     };
   </script>
 </body>
-</html> 
+  </html>
