@@ -251,7 +251,7 @@
       cursor: pointer;
       z-index: 10;
     }
-    .level-btn {
+    .outils-btn {
       position: fixed;
       bottom: 80px;
       left: 16px;
@@ -266,52 +266,45 @@
       cursor: pointer;
       z-index: 10;
     }
-    .exam-btn {
-      position: fixed;
-      bottom: 132px;
-      left: 16px;
-      background: #1F4438;
-      color: #E8C547;
-      border: none;
-      border-radius: 24px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
-      z-index: 10;
-    }
-    .translate-btn {
-      position: fixed;
-      bottom: 184px;
-      left: 16px;
-      background: #E8C547;
-      color: #1F4438;
-      border: none;
-      border-radius: 24px;
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
-      z-index: 10;
-    }
-    .level-menu, .exam-menu, .translate-menu {
+    .tools-menu, .panel {
       display: none;
       flex-direction: column;
       position: fixed;
-      bottom: 236px;
+      bottom: 132px;
       left: 16px;
       width: min(300px, calc(100vw - 32px));
-      max-height: 55vh;
+      max-height: 60vh;
       overflow-y: auto;
       background: white;
       border-radius: 14px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.2);
       z-index: 25;
     }
-    .level-menu.show, .exam-menu.show, .translate-menu.show { display: flex; }
-    .level-menu button {
+    .tools-menu.show, .panel.show { display: flex; }
+    .tools-menu button {
+      background: none;
+      border: none;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: left;
+      color: #1F4438;
+      cursor: pointer;
+    }
+    .tools-menu button:not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
+    .panel-back {
+      background: none;
+      border: none;
+      border-bottom: 1px solid rgba(31,68,56,0.1);
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1F4438;
+      text-align: left;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #levelMenu button:not(.panel-back) {
       background: none;
       border: none;
       padding: 12px 16px;
@@ -322,7 +315,7 @@
       white-space: normal;
       line-height: 1.4;
     }
-    .level-menu button:not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
+    #levelMenu button:not(.panel-back):not(:last-child) { border-bottom: 1px solid rgba(31,68,56,0.1); }
     .exam-menu-inner, .translate-menu-inner {
       padding: 16px;
       display: flex;
@@ -393,6 +386,27 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
+    }
+    .translate-photo-row {
+      display: flex;
+      gap: 8px;
+    }
+    .translate-photo-row button {
+      flex: 1;
+      padding: 9px;
+      border: 1px solid rgba(31,68,56,0.2);
+      border-radius: 8px;
+      background: #F1ECDD;
+      color: #1F4438;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .translate-photo-status {
+      font-size: 12px;
+      color: #1F7A4D;
+      font-weight: 600;
+      min-height: 16px;
     }
     .feedback-overlay {
       display: none;
@@ -501,11 +515,21 @@
     </div>
   </div>
 
-  <button class="level-btn" id="levelBtn">🎓 Mon niveau</button>
-  <div class="level-menu" id="levelMenu"></div>
+  <button class="outils-btn" id="outilsBtn">🛠️ Outils</button>
 
-  <button class="exam-btn" id="examBtn">📝 Composition</button>
-  <div class="exam-menu" id="examMenu">
+  <div class="tools-menu" id="toolsMenu">
+    <button class="tools-option" data-target="levelMenu">🎓 Mon niveau</button>
+    <button class="tools-option" data-target="examMenu">📝 Composition</button>
+    <button class="tools-option" data-target="translateMenu">🌐 Traduire</button>
+    <button class="tools-option" data-target="orientationMenu">🎯 Orientation</button>
+  </div>
+
+  <div class="panel" id="levelMenu">
+    <button class="panel-back" id="levelBack">← Retour aux outils</button>
+  </div>
+
+  <div class="panel" id="examMenu">
+    <button class="panel-back" id="examBack">← Retour aux outils</button>
     <div class="exam-menu-inner">
       <label for="examSubject">Matière</label>
       <input type="text" id="examSubject" placeholder="ex : Mathématiques" />
@@ -517,8 +541,8 @@
     </div>
   </div>
 
-  <button class="translate-btn" id="translateBtn">🌐 Traduire</button>
-  <div class="translate-menu" id="translateMenu">
+  <div class="panel" id="translateMenu">
+    <button class="panel-back" id="translateBack">← Retour aux outils</button>
     <div class="translate-menu-inner">
       <label>Langues</label>
       <div class="lang-row">
@@ -536,9 +560,26 @@
           <option value="allemand">Allemand</option>
         </select>
       </div>
-      <label for="translateText">Texte à traduire</label>
+      <label>Photo de l'exercice (optionnel)</label>
+      <div class="translate-photo-row">
+        <button type="button" id="translateCameraBtn">📷 Caméra</button>
+        <button type="button" id="translateGalleryBtn">🖼️ Galerie</button>
+      </div>
+      <span class="translate-photo-status" id="translatePhotoStatus"></span>
+      <label for="translateText">Texte à traduire (optionnel si photo)</label>
       <textarea id="translateText" placeholder="Tape ou colle ton texte..."></textarea>
       <button id="translateSendBtn">Traduire</button>
+    </div>
+  </div>
+
+  <div class="panel" id="orientationMenu">
+    <button class="panel-back" id="orientationBack">← Retour aux outils</button>
+    <div class="exam-menu-inner">
+      <label for="interestsInput">Centres d'intérêt (optionnel)</label>
+      <input type="text" id="interestsInput" placeholder="ex : sciences, commerce, art..." />
+      <div class="exam-actions">
+        <button id="orientationSendBtn">🎯 Obtenir des conseils</button>
+      </div>
     </div>
   </div>
 
@@ -560,8 +601,8 @@
         <button class="primary" id="feedbackSend">Envoyer</button>
       </div>
     </div>
-          </div>
-   <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+    </div>
+ <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
   <script>
     const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
@@ -581,20 +622,36 @@
     const previewImg = document.getElementById("previewImg");
     const removePhoto = document.getElementById("removePhoto");
     const micBtn = document.getElementById("micBtn");
-    const levelBtn = document.getElementById("levelBtn");
+
+    const outilsBtn = document.getElementById("outilsBtn");
+    const toolsMenu = document.getElementById("toolsMenu");
     const levelMenu = document.getElementById("levelMenu");
-    const examBtn = document.getElementById("examBtn");
     const examMenu = document.getElementById("examMenu");
+    const translateMenu = document.getElementById("translateMenu");
+    const orientationMenu = document.getElementById("orientationMenu");
+    const panels = [levelMenu, examMenu, translateMenu, orientationMenu];
+
+    const levelBack = document.getElementById("levelBack");
+    const examBack = document.getElementById("examBack");
+    const translateBack = document.getElementById("translateBack");
+    const orientationBack = document.getElementById("orientationBack");
+
     const examSubject = document.getElementById("examSubject");
     const examSujetBtn = document.getElementById("examSujetBtn");
     const examCorrigeBtn = document.getElementById("examCorrigeBtn");
     const examConseilsBtn = document.getElementById("examConseilsBtn");
-    const translateBtn = document.getElementById("translateBtn");
-    const translateMenu = document.getElementById("translateMenu");
+
     const langFrom = document.getElementById("langFrom");
     const langTo = document.getElementById("langTo");
     const translateText = document.getElementById("translateText");
     const translateSendBtn = document.getElementById("translateSendBtn");
+    const translateCameraBtn = document.getElementById("translateCameraBtn");
+    const translateGalleryBtn = document.getElementById("translateGalleryBtn");
+    const translatePhotoStatus = document.getElementById("translatePhotoStatus");
+
+    const interestsInput = document.getElementById("interestsInput");
+    const orientationSendBtn = document.getElementById("orientationSendBtn");
+
     let selectedImageBase64 = null;
     let selectedImageMediaType = null;
 
@@ -622,6 +679,7 @@
         selectedImageMediaType = file.type;
         previewImg.src = result;
         photoPreview.classList.add("show");
+        translatePhotoStatus.textContent = "Photo ajoutée ✅";
       };
       reader.readAsDataURL(file);
     }
@@ -640,6 +698,7 @@
       cameraInput.value = "";
       galleryInput.value = "";
       photoPreview.classList.remove("show");
+      translatePhotoStatus.textContent = "";
     });
 
     let recognition = null;
@@ -687,7 +746,7 @@
     });
 
     let history = [
-      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire avec le bouton 🎓 Mon niveau en bas de l'écran 🙂", displayText: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire avec le bouton 🎓 Mon niveau en bas de l'écran 🙂" }
+      { role: "assistant", content: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire avec le bouton 🛠️ Outils en bas de l'écran 🙂", displayText: "Salut ! Je suis Coach 👋 Je suis là pour t'aider, que tu sois au collège, au lycée, à l'université ou en grande école. Pour bien t'aider, dis-moi d'abord ton niveau scolaire avec le bouton 🛠️ Outils en bas de l'écran 🙂" }
     ];
 
     const suggestions = [
@@ -706,44 +765,70 @@
       const btn = document.createElement("button");
       btn.textContent = s;
       btn.addEventListener("click", () => {
-        levelMenu.classList.remove("show");
+        closeAllPanels();
         sendMessage(s);
       });
       levelMenu.appendChild(btn);
     });
 
-    levelBtn.addEventListener("click", (e) => {
+    function closeAllPanels() {
+      panels.forEach(p => p.classList.remove("show"));
+      toolsMenu.classList.remove("show");
+    }
+
+    outilsBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      examMenu.classList.remove("show");
-      translateMenu.classList.remove("show");
-      levelMenu.classList.toggle("show");
+      const wasOpen = toolsMenu.classList.contains("show");
+      closeAllPanels();
+      if (!wasOpen) toolsMenu.classList.add("show");
     });
 
-    examBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      levelMenu.classList.remove("show");
-      translateMenu.classList.remove("show");
-      examMenu.classList.toggle("show");
+    document.querySelectorAll(".tools-option").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.dataset.target;
+        closeAllPanels();
+        document.getElementById(targetId).classList.add("show");
+      });
     });
 
-    translateBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      levelMenu.classList.remove("show");
-      examMenu.classList.remove("show");
-      translateMenu.classList.toggle("show");
+    [levelBack, examBack, translateBack, orientationBack].forEach(btn => {
+      btn.addEventListener("click", () => {
+        closeAllPanels();
+        toolsMenu.classList.add("show");
+      });
     });
+
+    translateCameraBtn.addEventListener("click", () => cameraInput.click());
+    translateGalleryBtn.addEventListener("click", () => galleryInput.click());
 
     translateSendBtn.addEventListener("click", () => {
       const text = translateText.value.trim();
-      if (!text) {
+      const from = langFrom.value;
+      const to = langTo.value;
+      if (!text && !selectedImageBase64) {
         translateText.focus();
         return;
       }
-      const from = langFrom.value;
-      const to = langTo.value;
-      const message = `Traduis ce texte de ${from} vers ${to} : "${text}"`;
-      translateMenu.classList.remove("show");
+      let message;
+      if (selectedImageBase64) {
+        message = text
+          ? `Voici une photo d'un exercice. Traduis le texte qu'elle contient, ainsi que ce complément : "${text}", de ${from} vers ${to}.`
+          : `Voici une photo d'un exercice. Traduis tout le texte qu'elle contient de ${from} vers ${to}, puis propose-moi ton aide pour l'exercice une fois traduit.`;
+      } else {
+        message = `Traduis ce texte de ${from} vers ${to} : "${text}"`;
+      }
+      closeAllPanels();
       translateText.value = "";
+      sendMessage(message);
+    });
+
+    orientationSendBtn.addEventListener("click", () => {
+      const interests = interestsInput.value.trim();
+      const message = interests
+        ? `Donne-moi des conseils d'orientation scolaire et professionnelle adaptés à mon niveau, en tenant compte de mes centres d'intérêt : ${interests}.`
+        : `Donne-moi des conseils d'orientation scolaire et professionnelle adaptés à mon niveau.`;
+      closeAllPanels();
+      interestsInput.value = "";
       sendMessage(message);
     });
 
@@ -761,7 +846,7 @@
       } else {
         message = `Donne-moi des conseils concrets pour réussir une composition/examen en ${subject}, adaptés à mon niveau.`;
       }
-      examMenu.classList.remove("show");
+      closeAllPanels();
       examSubject.value = "";
       sendMessage(message);
     }
@@ -774,14 +859,9 @@
       if (!photoMenu.contains(e.target) && e.target !== photoBtn) {
         photoMenu.classList.remove("show");
       }
-      if (!levelMenu.contains(e.target) && e.target !== levelBtn) {
-        levelMenu.classList.remove("show");
-      }
-      if (!examMenu.contains(e.target) && e.target !== examBtn) {
-        examMenu.classList.remove("show");
-      }
-      if (!translateMenu.contains(e.target) && e.target !== translateBtn) {
-        translateMenu.classList.remove("show");
+      const insideTools = toolsMenu.contains(e.target) || panels.some(p => p.contains(e.target));
+      if (!insideTools && e.target !== outilsBtn) {
+        closeAllPanels();
       }
     });
 
@@ -853,6 +933,7 @@
       cameraInput.value = "";
       galleryInput.value = "";
       photoPreview.classList.remove("show");
+      translatePhotoStatus.textContent = "";
       render();
       sendBtn.disabled = true;
       showTyping();
@@ -993,4 +1074,4 @@
     };
   </script>
 </body>
-</html>       
+</html> 
