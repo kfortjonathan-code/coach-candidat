@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tarifs — Coach du candidat</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #FAF6EC;
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+    header {
+      background: #1F4438;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #FAF6EC;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    header h1 { color: #FAF6EC; font-size: 17px; font-weight: 600; }
+    .page { max-width: 640px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+    .alert-banner {
+      background: #fff3cd;
+      border: 1px solid #E8C547;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 14px;
+      color: #1F4438;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .welcome-banner {
+      background: #1F4438;
+      border-radius: 14px;
+      padding: 18px 16px;
+      color: #FAF6EC;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+    .welcome-icon { font-size: 32px; flex-shrink: 0; }
+    .welcome-title { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .welcome-text { font-size: 13px; color: #9FC4B3; line-height: 1.5; }
+    .welcome-text strong { color: #E8C547; }
+
+    .section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(31,68,56,0.5);
+      font-family: monospace;
+      padding: 0 4px;
+    }
+
+    .pack-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .pack-card.featured { border: 2px solid #1F4438; }
+    .pack-card.disabled { opacity: 0.5; }
+
+    .pack-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .pack-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1F4438;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pack-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: #E8C547;
+      color: #1F4438;
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+    .pack-price {
+      font-size: 22px;
+      font-weight: 700;
+      font-family: monospace;
+      color: #1F4438;
+      white-space: nowrap;
+    }
+    .pack-price span { font-size: 12px; font-weight: 400; color: rgba(31,68,56,0.5); }
+
+    .pack-items { display: flex; flex-direction: column; gap: 6px; }
+    .pack-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #2B2B26;
+    }
+    .pack-item::before { content: "✓"; color: #1F7A4D; font-weight: 700; flex-shrink: 0; }
+
+    .pack-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .pack-btn.soon {
+      background: #F3F1EA;
+      color: rgba(31,68,56,0.55);
+      cursor: default;
+    }
+    .btn-note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(31,68,56,0.45);
+      margin-top: -4px;
+    }
+
+    .admin-section {
+      display: none;
+      background: #1F4438;
+      border-radius: 14px;
+      padding: 18px 16px;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .admin-section.visible { display: flex; }
+    .admin-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #9FC4B3;
+      font-family: monospace;
+    }
+    .admin-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-label { font-size: 14px; color: #FAF6EC; font-weight: 600; }
+    .toggle {
+      width: 50px;
+      height: 28px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      border: none;
+      transition: background 0.3s;
+    }
+    .toggle.on { background: #E8C547; }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: left 0.3s;
+    }
+    .toggle.on::after { left: 25px; }
+    .admin-status { font-size: 12px; color: #9FC4B3; }
+    .admin-status.active { color: #E8C547; }
+
+    .wave-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: white;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: rgba(31,68,56,0.7);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      line-height: 1.5;
+    }
+    .wave-note strong { color: #1F4438; }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <h1>Recharger mes crédits</h1>
+  </header>
+
+  <div class="page">
+
+    <div class="alert-banner" id="noCreditsAlert" style="display:none">
+      ⚠️ Vous n'avez plus de crédits — choisissez un pack pour continuer
+    </div>
+
+    <div class="welcome-banner">
+      <div class="welcome-icon">🎁</div>
+      <div>
+        <div class="welcome-title">Offre de bienvenue</div>
+        <div class="welcome-text">Chaque nouveau compte reçoit <strong>2 questions + 1 photo gratuites</strong> pour découvrir Coach du candidat sans engagement.</div>
+      </div>
+    </div>
+
+    <div class="section-title">Choisissez votre pack</div>
+
+    <!-- Pack Questions -->
+    <div class="pack-card">
+      <div class="pack-header">
+        <div class="pack-name">📝 Pack Questions</div>
+        <div class="pack-price">500 <span>FCFA</span></div>
+      </div>
+      <div class="pack-items">
+        <div class="pack-item">10 questions texte pur</div>
+        <div class="pack-item">Toutes matières, tous niveaux</div>
+        <div class="pack-item">Sans limite de durée</div>
+      </div>
+      <button class="pack-btn soon">Acheter — Bientôt disponible via Wave</button>
+    </div>
+
+    <!-- Pack Mixte -->
+    <div class="pack-card featured">
+      <div class="pack-header">
+        <div class="pack-name">📷 Pack Mixte <span class="pack-badge">Populaire</span></div>
+        <div class="pack-price">750 <span>FCFA</span></div>
+      </div>
+      <div class="pack-items">
+        <div class="pack-item">10 questions à poser à Coach</div>
+        <div class="pack-item">3 analyses de photos d'exercices</div>
+        <div class="pack-item">Caméra directe ou galerie / album</div>
+        <div class="pack-item">Sans limite de durée</div>
+      </div>
+      <button class="pack-btn soon">Acheter — Bientôt disponible via Wave</button>
+    </div>
+
+    <!-- Pack Photos -->
+    <div class="pack-card">
+      <div class="pack-header">
+        <div class="pack-name">🖼️ Pack Photos</div>
+        <div class="pack-price">500 <span>FCFA</span></div>
+      </div>
+      <div class="pack-items">
+        <div class="pack-item">6 photos d'exercices à envoyer</div>
+        <div class="pack-item">Caméra directe ou galerie / album</div>
+        <div class="pack-item">Correction détaillée de chaque exercice</div>
+        <div class="pack-item">Sans limite de durée</div>
+      </div>
+      <button class="pack-btn soon">Acheter — Bientôt disponible via Wave</button>
+    </div>
+
+    <!-- Abonnement mensuel -->
+    <div class="pack-card" id="subCard">
+      <div class="pack-header">
+        <div class="pack-name">♾️ Abonnement mensuel</div>
+        <div class="pack-price">3 000 <span>FCFA/mois</span></div>
+      </div>
+      <div class="pack-items">
+        <div class="pack-item">Questions illimitées pendant 1 mois</div>
+        <div class="pack-item">Photos illimitées pendant 1 mois</div>
+        <div class="pack-item">Toutes fonctionnalités incluses</div>
+      </div>
+      <button class="pack-btn soon" id="subBtn">S'abonner — Bientôt disponible via Wave</button>
+      <div class="btn-note" id="subStatus">Activé/Désactivé par l'administrateur</div>
+    </div>
+
+    <!-- Zone admin secrète -->
+    <div class="admin-section" id="adminSection">
+      <div class="admin-title">🔐 Admin — Abonnement mensuel</div>
+      <div class="admin-row">
+        <div>
+          <div class="admin-label">Activer l'abonnement</div>
+          <div class="admin-status" id="adminStatusText">Statut : inactif</div>
+        </div>
+        <button class="toggle" id="adminToggle" onclick="toggleSubscription()"></button>
+      </div>
+    </div>
+
+    <div class="wave-note">
+      💳 <div>Les paiements seront disponibles via <strong>Wave</strong>, <strong>Orange Money</strong> et <strong>MTN Money</strong> très prochainement, dès l'obtention du RCCM.</div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const ADMIN_EMAIL = "kfortjonathan@gmail.com";
+
+    let subscriptionEnabled = false;
+
+    async function init() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) { window.location.href = "/login.html"; return; }
+
+      const user = sessionData.session.user;
+
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("no_credits") === "1") {
+        document.getElementById("noCreditsAlert").style.display = "block";
+      }
+
+      const { data: setting } = await supabase
+        .from("admin_settings")
+        .select("value")
+        .eq("key", "subscription_enabled")
+        .single();
+
+      subscriptionEnabled = setting?.value === "true";
+      updateSubscriptionUI();
+
+      if (user.email === ADMIN_EMAIL) {
+        document.getElementById("adminSection").classList.add("visible");
+      }
+    }
+
+    function updateSubscriptionUI() {
+      const toggle = document.getElementById("adminToggle");
+      const statusText = document.getElementById("adminStatusText");
+      const subBtn = document.getElementById("subBtn");
+
+      if (subscriptionEnabled) {
+        toggle.classList.add("on");
+        statusText.textContent = "Statut : actif ✅";
+        statusText.classList.add("active");
+        subBtn.textContent = "S'abonner — 3 000 FCFA/mois via Wave";
+        subBtn.classList.remove("soon");
+        subBtn.style.background = "#1F4438";
+        subBtn.style.color = "#FAF6EC";
+      } else {
+        toggle.classList.remove("on");
+        statusText.textContent = "Statut : inactif";
+        statusText.classList.remove("active");
+        subBtn.textContent = "S'abonner — Bientôt disponible via Wave";
+        subBtn.classList.add("soon");
+        subBtn.style.background = "";
+        subBtn.style.color = "";
+      }
+    }
+
+    async function toggleSubscription() {
+      subscriptionEnabled = !subscriptionEnabled;
+
+      await supabase
+        .from("admin_settings")
+        .upsert({ key: "subscription_enabled", value: subscriptionEnabled ? "true" : "false", updated_at: new Date().toISOString() });
+
+      updateSubscriptionUI();
+    }
+
+    init();
+  </script>
+</body>
+        </html>
