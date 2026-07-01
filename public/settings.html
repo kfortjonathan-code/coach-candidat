@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="fr" id="htmlRoot">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paramètres — Coach du candidat</title>
+  <style>
+    :root {
+      --bg: #FAF6EC;
+      --card: #ffffff;
+      --text: #1F4438;
+      --text2: rgba(31,68,56,0.6);
+      --border: rgba(31,68,56,0.1);
+      --accent: #E8C547;
+      --header: #1F4438;
+      --danger: #c0392b;
+    }
+    html.dark {
+      --bg: #1a1a1a;
+      --card: #2a2a2a;
+      --text: #f0ede4;
+      --text2: rgba(240,237,228,0.5);
+      --border: rgba(255,255,255,0.08);
+      --accent: #E8C547;
+      --header: #111;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 40px;
+      transition: background 0.3s, color 0.3s;
+      font-size: var(--font-size, 15px);
+    }
+    header {
+      background: var(--header);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .back-btn {
+      background: none;
+      border: none;
+      color: #FAF6EC;
+      font-size: 20px;
+      cursor: pointer;
+    }
+    header h1 { color: #FAF6EC; font-size: 17px; font-weight: 600; }
+    .page { max-width: 640px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text2);
+      font-family: monospace;
+      padding: 8px 4px 4px;
+    }
+
+    .settings-group {
+      background: var(--card);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .settings-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row:active { background: var(--bg); }
+
+    .row-icon { font-size: 20px; width: 28px; flex-shrink: 0; text-align: center; }
+    .row-info { flex: 1; }
+    .row-label { font-size: 15px; font-weight: 500; color: var(--text); }
+    .row-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .row-right { color: var(--text2); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+
+    .toggle {
+      width: 48px;
+      height: 26px;
+      background: var(--border);
+      border-radius: 13px;
+      position: relative;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+      flex-shrink: 0;
+    }
+    .toggle.on { background: #1F4438; }
+    html.dark .toggle.on { background: var(--accent); }
+    .toggle::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: left 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle.on::after { left: 25px; }
+
+    .font-row {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .font-row:last-child { border-bottom: none; }
+    .font-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-left: auto;
+    }
+    .font-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .font-size-label {
+      font-size: 13px;
+      color: var(--text2);
+      width: 40px;
+      text-align: center;
+      font-family: monospace;
+    }
+
+    .danger-row .row-label { color: var(--danger); }
+    .danger-row .row-icon { filter: hue-rotate(0deg); }
+
+    .avatar-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: #E8C547;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1F4438;
+      flex-shrink: 0;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 50;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: var(--card);
+      width: 100%;
+      max-width: 640px;
+      border-radius: 18px 18px 0 0;
+      padding: 24px 20px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .modal h3 { font-size: 16px; color: var(--text); font-weight: 700; }
+    .modal input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .modal input:focus { outline: 2px solid rgba(31,68,56,0.3); }
+    .modal-actions { display: flex; gap: 10px; }
+    .btn-primary {
+      flex: 1;
+      padding: 13px;
+      background: #1F4438;
+      color: #FAF6EC;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-secondary {
+      padding: 13px 16px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    .msg { font-size: 13px; text-align: center; min-height: 16px; }
+    .msg.ok { color: #1F7A4D; }
+    .msg.err { color: var(--danger); }
+
+    .version-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text2);
+      padding: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <button class="back-btn" onclick="window.history.back()">←</button>
+    <h1>Paramètres</h1>
+  </header>
+
+  <div class="page">
+
+    <!-- PROFIL -->
+    <div class="section-label">👤 Profil & Compte</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="openModal('nameModal')">
+        <div class="avatar-circle" id="avatarCircle">?</div>
+        <div class="row-info">
+          <div class="row-label" id="profileName">Chargement...</div>
+          <div class="row-sub" id="profileEmail">—</div>
+        </div>
+        <div class="row-right">Modifier ›</div>
+      </div>
+      <div class="settings-row" onclick="openModal('passwordModal')">
+        <div class="row-icon">🔑</div>
+        <div class="row-info">
+          <div class="row-label">Mot de passe</div>
+          <div class="row-sub">Modifier ton mot de passe</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+      <div class="settings-row" onclick="window.location.href='/pricing.html'">
+        <div class="row-icon">💳</div>
+        <div class="row-info">
+          <div class="row-label">Crédits & Abonnement</div>
+          <div class="row-sub" id="creditsInfo">Voir les offres disponibles</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="section-label">🔔 Notifications</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="row-icon">📱</div>
+        <div class="row-info">
+          <div class="row-label">Notifications push</div>
+          <div class="row-sub">Alertes sur ton téléphone</div>
+        </div>
+        <button class="toggle" id="togglePush" onclick="togglePref('push', this)"></button>
+      </div>
+      <div class="settings-row">
+        <div class="row-icon">✉️</div>
+        <div class="row-info">
+          <div class="row-label">Notifications email</div>
+          <div class="row-sub">Résumé hebdomadaire par email</div>
+        </div>
+        <button class="toggle" id="toggleEmail" onclick="togglePref('email', this)"></button>
+      </div>
+      <div class="settings-row">
+        <div class="row-icon">🔊</div>
+        <div class="row-info">
+          <div class="row-label">Sons</div>
+          <div class="row-sub">Son à la réception d'une réponse</div>
+        </div>
+        <button class="toggle" id="toggleSound" onclick="togglePref('sound', this)"></button>
+      </div>
+    </div>
+
+    <!-- APPARENCE -->
+    <div class="section-label">🎨 Apparence</div>
+    <div class="settings-group">
+      <div class="settings-row">
+        <div class="row-icon">🌙</div>
+        <div class="row-info">
+          <div class="row-label">Mode sombre</div>
+          <div class="row-sub">Réduire la luminosité de l'écran</div>
+        </div>
+        <button class="toggle" id="toggleDark" onclick="toggleDarkMode(this)"></button>
+      </div>
+      <div class="font-row">
+        <div class="row-icon">🔤</div>
+        <div class="row-info">
+          <div class="row-label">Taille du texte</div>
+          <div class="row-sub">Ajuster la lisibilité</div>
+        </div>
+        <div class="font-controls">
+          <button class="font-btn" onclick="changeFontSize(-1)">A−</button>
+          <span class="font-size-label" id="fontSizeLabel">15px</span>
+          <button class="font-btn" onclick="changeFontSize(+1)">A+</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- AVANCÉ -->
+    <div class="section-label">⚙️ Avancé</div>
+    <div class="settings-group">
+      <div class="settings-row" onclick="window.location.href='/dashboard.html'">
+        <div class="row-icon">📊</div>
+        <div class="row-info">
+          <div class="row-label">Mon tableau de bord</div>
+          <div class="row-sub">Statistiques et progression</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+      <div class="settings-row" onclick="window.location.href='/about.html'">
+        <div class="row-icon">ℹ️</div>
+        <div class="row-info">
+          <div class="row-label">À propos de Coach</div>
+          <div class="row-sub">Créateur, version, mentions légales</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+      <div class="settings-row" onclick="confirmLogout()">
+        <div class="row-icon">🚪</div>
+        <div class="row-info">
+          <div class="row-label">Se déconnecter</div>
+          <div class="row-sub">Fermer la session en cours</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+      <div class="settings-row danger-row" onclick="confirmDeleteData()">
+        <div class="row-icon">🗑️</div>
+        <div class="row-info">
+          <div class="row-label">Effacer mon historique</div>
+          <div class="row-sub">Supprimer toutes mes activités enregistrées</div>
+        </div>
+        <div class="row-right">›</div>
+      </div>
+    </div>
+
+    <div class="version-note">Coach du candidat · Version 2.0 · Bouaké, Côte d'Ivoire 🇨🇮</div>
+
+  </div>
+
+  <!-- Modal : modifier le nom -->
+  <div class="modal-overlay" id="nameModal">
+    <div class="modal">
+      <h3>Modifier le profil</h3>
+      <input type="text" id="nameInput" placeholder="Ton prénom ou surnom" />
+      <div class="msg" id="nameMsg"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('nameModal')">Annuler</button>
+        <button class="btn-primary" onclick="saveName()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal : changer le mot de passe -->
+  <div class="modal-overlay" id="passwordModal">
+    <div class="modal">
+      <h3>Nouveau mot de passe</h3>
+      <input type="password" id="newPasswordInput" placeholder="Nouveau mot de passe (min. 6 caractères)" />
+      <input type="password" id="confirmPasswordInput" placeholder="Confirmer le mot de passe" />
+      <div class="msg" id="passwordMsg"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeModal('passwordModal')">Annuler</button>
+        <button class="btn-primary" onclick="savePassword()">Modifier</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+  <script>
+    const SUPABASE_URL = "https://amuauikvcjxtexayhkfi.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_GT_FKq3vNkt2CTRrJXph6Q_xrveBj6A";
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let currentUser = null;
+
+    // ── Initialisation ──────────────────────────
+    async function init() {
+      applyStoredPrefs();
+
+      const { data } = await supabase.auth.getSession();
+      if (!data.session) { window.location.href = "/login.html"; return; }
+      currentUser = data.session.user;
+
+      const name = currentUser.user_metadata?.display_name || "";
+      const email = currentUser.email || "";
+      const initial = (name || email).charAt(0).toUpperCase();
+
+      document.getElementById("avatarCircle").textContent = initial;
+      document.getElementById("profileName").textContent = name || "Ajouter un prénom";
+      document.getElementById("profileEmail").textContent = email;
+      document.getElementById("nameInput").value = name;
+
+      const { data: credits } = await supabase
+        .from("credits")
+        .select("credits_simple, credits_photo, subscription_active")
+        .eq("user_id", currentUser.id)
+        .single();
+
+      if (credits) {
+        const info = credits.subscription_active
+          ? "Abonnement actif ✅"
+          : `${credits.credits_simple} question(s) · ${credits.credits_photo} photo(s)`;
+        document.getElementById("creditsInfo").textContent = info;
+      }
+    }
+
+    // ── Préférences locales ──────────────────────
+    function applyStoredPrefs() {
+      const dark = localStorage.getItem("dark") === "1";
+      const fontSize = parseInt(localStorage.getItem("fontSize") || "15");
+
+      if (dark) {
+        document.getElementById("htmlRoot").classList.add("dark");
+        document.getElementById("toggleDark")?.classList.add("on");
+      }
+      document.body.style.setProperty("--font-size", fontSize + "px");
+      const label = document.getElementById("fontSizeLabel");
+      if (label) label.textContent = fontSize + "px";
+
+      ["push", "email", "sound"].forEach(key => {
+        const val = localStorage.getItem("notif_" + key) === "1";
+        const el = document.getElementById("toggle" + key.charAt(0).toUpperCase() + key.slice(1));
+        if (el && val) el.classList.add("on");
+      });
+    }
+
+    function togglePref(key, el) {
+      el.classList.toggle("on");
+      localStorage.setItem("notif_" + key, el.classList.contains("on") ? "1" : "0");
+    }
+
+    function toggleDarkMode(el) {
+      const html = document.getElementById("htmlRoot");
+      html.classList.toggle("dark");
+      el.classList.toggle("on");
+      localStorage.setItem("dark", html.classList.contains("dark") ? "1" : "0");
+    }
+
+    let fontSize = parseInt(localStorage.getItem("fontSize") || "15");
+    function changeFontSize(delta) {
+      fontSize = Math.min(20, Math.max(12, fontSize + delta));
+      document.body.style.setProperty("--font-size", fontSize + "px");
+      document.getElementById("fontSizeLabel").textContent = fontSize + "px";
+      localStorage.setItem("fontSize", fontSize);
+    }
+
+    // ── Modals ──────────────────────────────────
+    function openModal(id) {
+      document.getElementById(id).classList.add("show");
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("show");
+      document.getElementById(id === "nameModal" ? "nameMsg" : "passwordMsg").textContent = "";
+    }
+
+    async function saveName() {
+      const name = document.getElementById("nameInput").value.trim();
+      if (!name) { showMsg("nameMsg", "Saisis un prénom.", false); return; }
+      const { error } = await supabase.auth.updateUser({ data: { display_name: name } });
+      if (error) { showMsg("nameMsg", "Erreur : " + error.message, false); return; }
+      document.getElementById("profileName").textContent = name;
+      document.getElementById("avatarCircle").textContent = name.charAt(0).toUpperCase();
+      showMsg("nameMsg", "Profil mis à jour ✅", true);
+      setTimeout(() => closeModal("nameModal"), 1200);
+    }
+
+    async function savePassword() {
+      const p1 = document.getElementById("newPasswordInput").value;
+      const p2 = document.getElementById("confirmPasswordInput").value;
+      if (p1.length < 6) { showMsg("passwordMsg", "Le mot de passe doit faire au moins 6 caractères.", false); return; }
+      if (p1 !== p2) { showMsg("passwordMsg", "Les mots de passe ne correspondent pas.", false); return; }
+      const { error } = await supabase.auth.updateUser({ password: p1 });
+      if (error) { showMsg("passwordMsg", "Erreur : " + error.message, false); return; }
+      showMsg("passwordMsg", "Mot de passe modifié ✅", true);
+      setTimeout(() => closeModal("passwordModal"), 1200);
+    }
+
+    function showMsg(id, text, ok) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = "msg " + (ok ? "ok" : "err");
+    }
+
+    // ── Actions avancées ─────────────────────────
+    async function confirmLogout() {
+      if (confirm("Se déconnecter de Coach du candidat ?")) {
+        await supabase.auth.signOut();
+        window.location.href = "/login.html";
+      }
+    }
+
+    async function confirmDeleteData() {
+      if (!confirm("Effacer tout ton historique d'activités ? Cette action est irréversible.")) return;
+      if (!currentUser) return;
+      await supabase.from("credits_history").delete().eq("user_id", currentUser.id);
+      alert("Historique effacé ✅");
+    }
+
+    init();
+  </script>
+</body>
+</html>
