@@ -934,7 +934,7 @@
         if (data.text) {
           history.push({ role: "assistant", content: data.text });
         } else if (data.code === "NO_CREDITS") {
-          history.push({ role: "assistant", content: "Tu n'as plus de crédits questions pour le moment. Reviens bientôt pour en obtenir d'autres 🙂" });
+        history.push({ role: "assistant", content: "Tu n'as plus de crédits 😕 Recharge ton compte sur la page Tarifs (bouton 💳 en haut) pour continuer à utiliser Coach." });  
         } else {
           history.push({ role: "assistant", content: "Désolé, une erreur s'est produite. Réessaie." });
         }
