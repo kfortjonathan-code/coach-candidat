@@ -111,8 +111,9 @@
   <header>
     <button class="back-btn" onclick="window.location.href='/index.html'">←</button>
     <h1>Mon tableau de bord</h1>
+    <a href="/pricing.html" style="margin-left:auto;background:none;border:1px solid rgba(255,255,255,0.3);color:#FAF6EC;border-radius:8px;padding:6px 10px;font-size:12px;text-decoration:none;">💳 Recharger</a>
   </header>
-
+  
   <div class="page">
     <div class="card" id="statsCard">
       <h2>Activité globale</h2>
@@ -178,13 +179,14 @@
       if (credits) {
         document.getElementById("creditsList").innerHTML = `
           <div class="credits-row">
-            <span class="credits-label">💬 Questions</span>
-            <span class="credits-val ${credits.credits_simple <= 2 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_simple}</span>
-          </div>
-          <div class="credits-row">
-            <span class="credits-label">📷 Photos</span>
-            <span class="credits-val ${credits.credits_photo <= 1 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_photo}</span>
-          </div>
+          <span class="credits-label">💬 Questions</span>
+          <span class="credits-val ${credits.credits_simple <= 1 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_simple}</span>
+        </div>
+        <div class="credits-row">
+          <span class="credits-label">📷 Photos</span>
+          <span class="credits-val ${credits.credits_photo < 1 ? "stat-warn" : ""}">${credits.subscription_active ? "∞" : credits.credits_photo}</span>
+        </div>
+        ${(credits.credits_simple <= 1 || credits.credits_photo < 1) && !credits.subscription_active ? '<a href="/pricing.html" style="display:block;margin-top:10px;text-align:center;background:#1F4438;color:#FAF6EC;padding:10px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;">💳 Recharger mes crédits</a>' : ''}
         `;
       } else {
         document.getElementById("creditsList").innerHTML = '<div class="empty">Données non disponibles</div>';
